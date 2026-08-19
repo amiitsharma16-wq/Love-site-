@@ -1,0 +1,645 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Little Story About You — Pratibhaa 💗</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Sacramento&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for Fireworks -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deepNight: '#0a040d',
+                        romanticRed: '#ff2a6d',
+                        softPink: '#ff758c',
+                        roseGold: '#f7cad0',
+                        champagne: '#fff0f3',
+                        glowViolet: '#3a0ca3'
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        cursive: ['Sacramento', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden !important; /* STRICTLY NO SCROLLING */
+            background: #0a040d;
+            background: radial-gradient(circle at center, #23081e 0%, #0a040d 100%);
+            color: #fff0f3;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            position: fixed;
+        }
+
+        /* Ambient romantic glowing spots */
+        .glow-sphere {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
+            animation: pulseGlow 6s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.4; }
+            100% { transform: scale(1.2) translate(10px, -10px); opacity: 0.7; }
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(35, 10, 30, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 117, 140, 0.25);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(255, 117, 140, 0.1);
+        }
+
+        /* Slide Deck logic with smooth transitions */
+        .slide-card {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(30px) scale(0.92);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+        }
+
+        .slide-card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+            z-index: 20;
+        }
+
+        /* Colourful Heart Button */
+        .heart-btn {
+            background: linear-gradient(135deg, #ff2a6d 0%, #ff758c 50%, #ffb3c1 100%);
+            box-shadow: 0 8px 25px rgba(255, 42, 109, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .heart-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Interactive Quiz Cards in Step 3 */
+        .quiz-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 117, 140, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .quiz-card:active, .quiz-card.selected {
+            background: rgba(255, 42, 109, 0.25);
+            border-color: #ff2a6d;
+            transform: scale(1.02);
+        }
+
+        /* Photo Frame - Fits photo without crop */
+        .photo-container {
+            max-height: 48vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-container img {
+            max-height: 48vh;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(255, 117, 140, 0.4);
+        }
+
+        /* Letter Reveal logic */
+        .letter-content-wrapper {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.8s ease, opacity 0.6s ease;
+            opacity: 0;
+        }
+
+        .letter-content-wrapper.open {
+            max-height: 380px;
+            opacity: 1;
+        }
+
+        /* Canvas background for stars */
+        #star-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="relative w-full h-full flex items-center justify-center">
+
+    <!-- Starry background canvas -->
+    <canvas id="star-canvas"></canvas>
+
+    <!-- Ambient glowing lights -->
+    <div class="glow-sphere w-72 h-72 bg-romanticRed top-10 -left-20"></div>
+    <div class="glow-sphere w-80 h-80 bg-glowViolet bottom-10 -right-20"></div>
+
+    <!-- Background Audio -->
+    <audio id="bg-audio" preload="auto">
+        <source src="O Sanam.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Header Navigation & Hearts Indicator -->
+    <header id="top-header" class="absolute top-4 left-0 right-0 z-50 px-5 flex flex-col gap-2 max-w-md mx-auto transition-opacity duration-500 opacity-0">
+        <div class="flex items-center justify-between text-xs text-roseGold font-medium">
+            <span id="step-number" class="tracking-widest uppercase text-[10px]">Story 1 of 9</span>
+            <button onclick="toggleAudio()" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[11px] backdrop-blur-md">
+                <i id="audio-icon" class="fas fa-music text-pink-400"></i>
+                <span id="audio-label">Music</span>
+            </button>
+        </div>
+        <!-- Heart Progress Bar -->
+        <div class="flex justify-between items-center px-1" id="heart-progress">
+            <!-- Populated via JavaScript -->
+        </div>
+    </header>
+
+    <!-- SLIDE CONTAINER (MAIN) -->
+    <main class="relative w-full h-full max-w-md mx-auto flex items-center justify-center z-20">
+
+        <!-- ==================== 1. 🌙 START ==================== -->
+        <div class="slide-card active" id="slide-1">
+            <div class="glass-card p-8 rounded-3xl text-center space-y-8 w-full border-roseGold/30 relative">
+                <div class="text-4xl animate-bounce">🌙✨</div>
+                
+                <div class="space-y-3">
+                    <p class="text-xs sm:text-sm tracking-widest uppercase text-roseGold/80">Hey Pratibhaa…</p>
+                    <h1 class="text-2xl sm:text-3xl font-serif text-champagne font-bold">I made something for you.</h1>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="startStory()" class="heart-btn w-full py-4 rounded-full text-white font-bold text-sm tracking-widest uppercase flex items-center justify-center gap-2 shadow-lg">
+                        Start <i class="fas fa-heart text-white animate-pulse"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 2. 💭 BEFORE YOU GO FURTHER… ==================== -->
+        <div class="slide-card" id="slide-2">
+            <div class="glass-card p-8 rounded-3xl text-center space-y-6 w-full">
+                <div class="w-12 h-12 mx-auto rounded-full bg-pink-500/20 border border-pink-400/30 flex items-center justify-center text-pink-300 text-xl">
+                    <i class="fas fa-thought-bubble"></i>💭
+                </div>
+
+                <div class="space-y-4 text-sm sm:text-base text-champagne font-light leading-relaxed">
+                    <p>“There is something I want to tell you.<br>But I don't know the perfect way to say it…”</p>
+                    <p class="text-roseGold font-medium text-xs sm:text-sm">“So I made this little place for you.”</p>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="nextSlide()" class="heart-btn px-8 py-3.5 rounded-full text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 mx-auto">
+                        Continue <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 3. 🧩 ONE SMALL QUESTION ==================== -->
+        <div class="slide-card" id="slide-3">
+            <div class="w-full space-y-4 text-center">
+                <span class="text-[10px] uppercase tracking-widest text-roseGold/80">A Little Thought</span>
+                <h2 class="text-xl font-serif text-champagne font-bold">What makes someone special? 🧩</h2>
+
+                <div class="grid grid-cols-2 gap-3 pt-2" id="quiz-options">
+                    <div onclick="selectQuiz(this)" class="quiz-card p-4 rounded-2xl text-left cursor-pointer">
+                        <div class="text-xl mb-1">😊</div>
+                        <div class="text-xs font-semibold text-champagne">Their smile</div>
+                    </div>
+                    <div onclick="selectQuiz(this)" class="quiz-card p-4 rounded-2xl text-left cursor-pointer">
+                        <div class="text-xl mb-1">🌸</div>
+                        <div class="text-xs font-semibold text-champagne">Their nature</div>
+                    </div>
+                    <div onclick="selectQuiz(this)" class="quiz-card p-4 rounded-2xl text-left cursor-pointer">
+                        <div class="text-xl mb-1">✨</div>
+                        <div class="text-xs font-semibold text-champagne">Their little things</div>
+                    </div>
+                    <div onclick="selectQuiz(this)" class="quiz-card p-4 rounded-2xl text-left cursor-pointer">
+                        <div class="text-xl mb-1">❤️</div>
+                        <div class="text-xs font-semibold text-champagne">Everything</div>
+                    </div>
+                </div>
+
+                <div id="quiz-response" class="hidden glass-card p-4 rounded-2xl text-center space-y-3 transition-all duration-500">
+                    <p class="text-xs text-roseGold italic">“Exactly… that's how I feel about you.” ❤️</p>
+                    <button onclick="nextSlide()" class="heart-btn px-6 py-2.5 rounded-full text-white font-bold text-xs uppercase tracking-widest mx-auto flex items-center gap-2">
+                        Next <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 4. 🫶 THE TRUTH ==================== -->
+        <div class="slide-card" id="slide-4">
+            <div class="glass-card p-7 rounded-3xl text-center space-y-4 w-full">
+                <span class="text-[10px] uppercase tracking-widest text-roseGold/80">The Truth 🫶</span>
+                
+                <div class="space-y-3 text-xs sm:text-sm text-champagne/90 leading-relaxed font-light py-2">
+                    <p class="fade-in-line">“At first, you were just someone special…”</p>
+                    <p class="fade-in-line">“Then I started waiting for your messages.”</p>
+                    <p class="fade-in-line">“Then your smile started making my day better.”</p>
+                    <p class="fade-in-line text-roseGold italic">“And somehow…”</p>
+                </div>
+
+                <div class="pt-2">
+                    <h3 class="text-2xl font-serif font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-300 to-red-400 animate-pulse">
+                        I started falling for you. ❤️
+                    </h3>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="nextSlide()" class="heart-btn px-8 py-3.5 rounded-full text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 mx-auto">
+                        Continue <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 5. 📸 YOUR ONE SPECIAL PICTURE ==================== -->
+        <div class="slide-card" id="slide-5">
+            <div class="glass-card p-4 rounded-3xl text-center space-y-3 w-full border-roseGold/30">
+                <div class="space-y-1">
+                    <p class="text-xs text-roseGold/90 font-serif">“I have only one picture of you here…”</p>
+                    <p class="text-[11px] text-pink-300 italic">“And yes, it's only your hand 😂”</p>
+                </div>
+
+                <!-- Picture Fit Container (No Crop) -->
+                <div class="photo-container bg-black/40 rounded-2xl p-2 border border-pink-500/20">
+                    <img src="Snapchat9.jpg" alt="Pratibhaa's Hand Photo" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop';">
+                </div>
+
+                <p class="text-xs text-champagne font-serif italic pt-1">
+                    “But even this little picture makes me smile.” ❤️
+                </p>
+
+                <div class="pt-2">
+                    <button onclick="nextSlide()" class="heart-btn px-8 py-3 rounded-full text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 mx-auto">
+                        Next <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 6. 🎵 ONE SONG FOR YOU ==================== -->
+        <div class="slide-card" id="slide-6">
+            <div class="glass-card p-8 rounded-3xl text-center space-y-6 w-full">
+                <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-pink-500 to-rose-400 flex items-center justify-center text-white text-2xl shadow-lg shadow-pink-500/40 animate-pulse">
+                    <i class="fas fa-music"></i>
+                </div>
+
+                <div class="space-y-2">
+                    <h2 class="text-xl font-serif text-champagne font-bold">One Song For You 🎵</h2>
+                    <p class="text-xs text-roseGold">“Play this and read the next part.”</p>
+                </div>
+
+                <!-- Dedicated Music Player Card -->
+                <div class="p-4 rounded-2xl bg-white/5 border border-pink-400/20 space-y-3">
+                    <p class="text-xs font-semibold text-pink-300">O Sanam — Lucky Ali</p>
+                    <button id="song-play-btn" onclick="startSongExplicitly()" class="heart-btn w-full py-3 rounded-full text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                        <i class="fas fa-play"></i> Play Song (1:10)
+                    </button>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="nextSlide()" class="heart-btn px-8 py-3.5 rounded-full text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 mx-auto">
+                        Continue Reading <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 7. 🌷 IF YOU WERE HERE… ==================== -->
+        <div class="slide-card" id="slide-7">
+            <div class="w-full space-y-3 text-center">
+                <span class="text-[10px] uppercase tracking-widest text-roseGold/80">Daydreams</span>
+                <h2 class="text-xl font-serif text-champagne font-bold">If You Were Here… 🌷</h2>
+
+                <div class="space-y-2.5 text-left">
+                    <div class="glass-card p-3.5 rounded-2xl border-l-4 border-l-amber-300">
+                        <h3 class="font-serif text-xs text-amber-200 font-bold">Morning ☀️</h3>
+                        <p class="text-[11px] text-champagne/90 mt-0.5">“I would want to start my day talking to you.”</p>
+                    </div>
+
+                    <div class="glass-card p-3.5 rounded-2xl border-l-4 border-l-pink-400">
+                        <h3 class="font-serif text-xs text-pink-300 font-bold">Evening 🌙</h3>
+                        <p class="text-[11px] text-champagne/90 mt-0.5">“I would want to tell you about my day.”</p>
+                    </div>
+
+                    <div class="glass-card p-3.5 rounded-2xl border-l-4 border-l-indigo-400">
+                        <h3 class="font-serif text-xs text-indigo-200 font-bold">Night ✨</h3>
+                        <p class="text-[11px] text-champagne/90 mt-0.5">“I would want to say goodnight to you.”</p>
+                    </div>
+                </div>
+
+                <p class="text-xs font-medium text-roseGold pt-1">
+                    “Basically… I just want more moments with you.” ❤️
+                </p>
+
+                <div class="pt-2">
+                    <button onclick="nextSlide()" class="heart-btn px-8 py-3 rounded-full text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 mx-auto">
+                        Next <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 8. 💌 THE LETTER ==================== -->
+        <div class="slide-card" id="slide-8">
+            <div class="glass-card p-6 rounded-3xl text-center space-y-4 w-full">
+                <span class="text-[10px] uppercase tracking-widest text-roseGold/80">From My Heart</span>
+                <h2 class="text-xl font-serif text-champagne font-bold">A Letter For You 💌</h2>
+
+                <div id="letter-tap" onclick="openLetter()" class="p-6 rounded-2xl bg-pink-500/10 border border-pink-400/30 cursor-pointer hover:border-pink-400 transition-all">
+                    <i class="fas fa-envelope text-pink-400 text-3xl mb-2"></i>
+                    <p class="font-serif text-sm text-champagne">Open this, Pratibhaa.</p>
+                    <p class="text-[10px] text-roseGold mt-1">Tap to open envelope</p>
+                </div>
+
+                <div id="letter-box" class="letter-content-wrapper text-left space-y-2">
+                    <p class="text-[11px] text-champagne/90 leading-relaxed">
+                        “I don't know what the future will bring. But I know that I really like having you in my life.”
+                    </p>
+                    <p class="text-[11px] text-champagne/90 leading-relaxed">
+                        “You make me smile in ways you probably don't even know.”
+                    </p>
+                    <p class="text-[11px] text-roseGold font-serif italic pt-1">
+                        “And I want to make many more memories with you.” ❤️
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="nextSlide()" class="heart-btn px-8 py-3 rounded-full text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 mx-auto">
+                        Continue <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 9. ❤️ THE FINAL QUESTION ==================== -->
+        <div class="slide-card" id="slide-9">
+            <div class="glass-card p-7 rounded-3xl text-center space-y-5 w-full border-2 border-pink-500/40">
+                <p class="text-2xl font-serif font-bold text-pink-300">Pratibhaa…</p>
+                <p class="text-xs text-roseGold">I have one last thing to ask you.</p>
+
+                <div class="py-2">
+                    <h2 class="text-2xl sm:text-3xl font-serif font-extrabold text-champagne">
+                        Will you be mine? ❤️
+                    </h2>
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <button onclick="acceptProposal()" class="heart-btn w-full py-4 rounded-full text-white font-extrabold text-sm tracking-widest uppercase flex items-center justify-center gap-2 shadow-xl">
+                        YES ❤️
+                    </button>
+
+                    <button id="think-btn" onclick="needTime()" class="w-full py-3 rounded-full bg-white/5 border border-white/20 text-roseGold text-xs font-medium uppercase tracking-wider">
+                        I NEED SOME TIME 🥺
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 10. 🎉 CELEBRATION (AFTER YES) ==================== -->
+        <div class="slide-card" id="slide-10">
+            <div class="glass-card p-7 rounded-3xl text-center space-y-5 w-full border-2 border-pink-400">
+                <div class="text-4xl animate-bounce">🎉💖✨</div>
+
+                <h2 class="text-xl sm:text-2xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-rose-300 to-amber-200">
+                    You just made me really happy. ❤️
+                </h2>
+
+                <div class="p-4 rounded-2xl bg-pink-500/10 border border-pink-400/20 space-y-1">
+                    <p class="text-xs text-roseGold italic">Our story starts here…</p>
+                    <p class="text-sm font-serif font-bold text-champagne">Chapter 01 — You & Me</p>
+                </div>
+
+                <div class="pt-4 border-t border-white/10">
+                    <p class="text-[10px] text-roseGold uppercase tracking-widest">
+                        Made with love, only for Pratibhaa. ❤️
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script for slide navigation, audio timestamp & firecrackers -->
+    <script>
+        const totalSlides = 9;
+        let currentSlide = 1;
+        const audio = document.getElementById('bg-audio');
+        let isAudioPlaying = false;
+
+        // Build heart indicators in top header
+        const heartProgress = document.getElementById('heart-progress');
+        for (let i = 1; i <= totalSlides; i++) {
+            const h = document.createElement('i');
+            h.id = `heart-ind-${i}`;
+            h.className = "fas fa-heart text-[10px] text-white/20 transition-colors duration-300";
+            heartProgress.appendChild(h);
+        }
+
+        function startStory() {
+            document.getElementById('top-header').classList.remove('opacity-0');
+            nextSlide();
+        }
+
+        function updateSlide() {
+            // Update slide visibility
+            for (let i = 1; i <= 10; i++) {
+                const card = document.getElementById(`slide-${i}`);
+                if (i === currentSlide) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            }
+
+            // Update heart progress bar
+            for (let i = 1; i <= totalSlides; i++) {
+                const ind = document.getElementById(`heart-ind-${i}`);
+                if (ind) {
+                    if (i <= currentSlide) {
+                        ind.className = "fas fa-heart text-[10px] text-pink-400";
+                    } else {
+                        ind.className = "fas fa-heart text-[10px] text-white/20";
+                    }
+                }
+            }
+
+            // Update header text
+            if (currentSlide <= totalSlides) {
+                document.getElementById('step-number').innerText = `Story ${currentSlide} of ${totalSlides}`;
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < 10) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        // Quiz Selection in Step 3
+        function selectQuiz(element) {
+            document.querySelectorAll('.quiz-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('quiz-response').classList.remove('hidden');
+        }
+
+        // Dedicated Music Player on Step 6
+        function startSongExplicitly() {
+            audio.currentTime = 70; // 1:10 min
+            audio.play().then(() => {
+                isAudioPlaying = true;
+                document.getElementById('song-play-btn').innerText = "Playing O Sanam 🎵";
+                document.getElementById('audio-label').innerText = "Playing";
+            }).catch(e => console.log(e));
+        }
+
+        function toggleAudio() {
+            if (isAudioPlaying) {
+                audio.pause();
+                isAudioPlaying = false;
+                document.getElementById('audio-label').innerText = "Paused";
+            } else {
+                if (audio.currentTime < 70) audio.currentTime = 70;
+                audio.play();
+                isAudioPlaying = true;
+                document.getElementById('audio-label').innerText = "Playing";
+            }
+        }
+
+        // Letter Open Step 8
+        function openLetter() {
+            document.getElementById('letter-tap').classList.add('hidden');
+            document.getElementById('letter-box').classList.add('open');
+        }
+
+        // PROPOSAL YES ACCEPTANCE - FIREWORKS & FIRECRACKERS
+        function acceptProposal() {
+            currentSlide = 10;
+            updateSlide();
+
+            // Fireworks explosions animation loop
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // Firecracker left & right bursts
+                confetti({
+                    particleCount: particleCount,
+                    startVelocity: 30,
+                    spread: 360,
+                    origin: { x: Math.random(), y: Math.random() - 0.2 },
+                    colors: ['#ff2a6d', '#ff758c', '#f7cad0', '#ffffff', '#ffd166']
+                });
+            }, 250);
+        }
+
+        function needTime() {
+            const btn = document.getElementById('think-btn');
+            btn.innerText = "TAKE ALL YOUR TIME 🥺❤️";
+            btn.classList.add('border-pink-400', 'text-pink-300');
+        }
+
+        // Starry Background Canvas
+        function initStars() {
+            const canvas = document.getElementById('star-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const stars = [];
+            for (let i = 0; i < 50; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.8 + 0.2,
+                    speed: Math.random() * 0.01 + 0.005
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(s => {
+                    s.alpha += s.speed;
+                    if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+                    ctx.fillStyle = `rgba(255, 240, 243, ${Math.abs(s.alpha)})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        window.addEventListener('DOMContentLoaded', initStars);
+    </script>
+</body>
+</html>
+
+```
