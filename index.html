@@ -1,0 +1,627 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Pratibhaa ❤️</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#07050d',
+                        burgundy: '#1f0814',
+                        wine: '#3d0c24',
+                        roseGold: '#e8b4b8',
+                        champagne: '#f7e7ce',
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        cursive: ['Great Vibes', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Prevents vertical scrolling completely */
+            background-color: #07050d;
+            color: #f7e7ce;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            position: fixed;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(31, 8, 20, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 180, 184, 0.22);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-card-glow {
+            box-shadow: 0 0 30px rgba(232, 180, 184, 0.15), inset 0 0 15px rgba(232, 180, 184, 0.1);
+        }
+
+        /* Particle background */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Slide Deck logic */
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95) translateY(20px);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) translateY(0);
+            z-index: 20;
+        }
+
+        /* Progress Bar indicator at the top */
+        .progress-bar-segment {
+            height: 3px;
+            flex: 1;
+            background: rgba(232, 180, 184, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #e8b4b8;
+            transition: width 0.4s ease;
+        }
+
+        /* Uncropped image frame */
+        .photo-frame {
+            max-height: 48vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-frame img {
+            max-height: 48vh;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(232, 180, 184, 0.3);
+        }
+
+        /* Letter expandable styling */
+        .letter-box {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.8s ease, opacity 0.6s ease;
+            opacity: 0;
+        }
+
+        .letter-box.open {
+            max-height: 350px;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="relative w-full h-full flex flex-col justify-between">
+
+    <!-- Particle canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Top Navigation Header (Progress Bar & Audio) -->
+    <header id="top-nav" class="absolute top-0 left-0 right-0 z-50 p-4 flex flex-col gap-3 max-w-lg mx-auto transition-opacity duration-500 opacity-0 pointer-events-none">
+        <!-- Progress Indicators -->
+        <div class="flex gap-1.5 w-full px-2" id="progress-container">
+            <!-- Dynamically generated via JS -->
+        </div>
+
+        <!-- Audio Control -->
+        <div class="flex justify-between items-center px-2">
+            <span id="slide-step-counter" class="text-[10px] tracking-widest text-roseGold/60 uppercase font-serif">Step 1 of 10</span>
+            <button onclick="toggleAudio()" class="glass-card px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wider text-roseGold flex items-center gap-1.5 border border-roseGold/30 hover:border-roseGold">
+                <i id="audio-icon" class="fas fa-music text-rose-400 animate-pulse"></i>
+                <span id="audio-status">Playing O Sanam</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Audio Element -->
+    <audio id="bg-audio" preload="auto">
+        <source src="O Sanam.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- MAIN SLIDE CONTAINER (FULLSCREEN NO SCROLL) -->
+    <div class="relative w-full h-full flex items-center justify-center max-w-md mx-auto">
+
+        <!-- ==================== SLIDE 1: INTRO ==================== -->
+        <div class="slide active" id="slide-1">
+            <div class="glass-card p-8 rounded-3xl text-center space-y-8 w-full border border-roseGold/30">
+                <p id="s1-text" class="text-xs sm:text-sm font-light tracking-widest text-roseGold/80 uppercase opacity-0 transition-opacity duration-1000">
+                    For the girl who unknowingly became my favourite part of every day…
+                </p>
+                <h1 id="s1-title" class="text-4xl sm:text-5xl font-serif tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-champagne via-roseGold to-pink-300 font-bold opacity-0 transition-opacity duration-1000">
+                    PRATIBHAA ✨
+                </h1>
+                <div id="s1-btn" class="pt-4 opacity-0 transition-opacity duration-1000">
+                    <button onclick="startApp()" class="w-full py-4 rounded-full bg-gradient-to-r from-wine via-burgundy to-wine border border-roseGold/50 text-roseGold font-semibold text-xs tracking-widest uppercase shadow-lg hover:scale-105 active:scale-95 transition-all">
+                        Enter My Heart ❤️
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 2: THIS IS FOR YOU ==================== -->
+        <div class="slide" id="slide-2">
+            <div class="glass-card p-8 rounded-3xl text-center space-y-6 w-full">
+                <div class="w-12 h-12 mx-auto rounded-full bg-wine/40 border border-roseGold/30 flex items-center justify-center text-roseGold">
+                    <i class="fas fa-envelope-open-text text-lg"></i>
+                </div>
+                <h2 class="text-2xl font-serif text-champagne font-semibold">This is for you…</h2>
+                <p class="text-sm font-light text-roseGold/90 leading-relaxed">
+                    Pratibhaa,<br>
+                    I don't know if a website can explain what I feel for you…<br>
+                    <span class="italic text-champagne font-normal">but I wanted to try.</span>
+                </p>
+                <div class="pt-4">
+                    <button onclick="nextSlide()" class="px-6 py-3 rounded-full glass-card border border-roseGold/40 text-roseGold text-xs uppercase tracking-widest hover:text-white flex items-center gap-2 mx-auto">
+                        Read my heart <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 3: HOW YOU BECAME SPECIAL ==================== -->
+        <div class="slide" id="slide-3">
+            <div class="w-full space-y-4 text-center">
+                <span class="text-[10px] uppercase tracking-widest text-roseGold/60">Moments & Feelings</span>
+                <h2 class="text-2xl font-serif text-champagne font-bold">How You Became Special</h2>
+
+                <div class="space-y-3 text-left">
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-l-roseGold">
+                        <h3 class="font-serif text-sm text-champagne font-semibold">Your Smile ✨</h3>
+                        <p class="text-xs text-roseGold/80 mt-1">“There is something about your smile that makes everything feel a little better.”</p>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-l-rose-400">
+                        <h3 class="font-serif text-sm text-champagne font-semibold">Your Presence 🌙</h3>
+                        <p class="text-xs text-roseGold/80 mt-1">“Even a normal day feels different when you're a part of it.”</p>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-l-pink-400">
+                        <h3 class="font-serif text-sm text-champagne font-semibold">Your Heart 💖</h3>
+                        <p class="text-xs text-roseGold/80 mt-1">“The more I know you, the more I realize how special you really are.”</p>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-l-amber-300 bg-wine/30">
+                        <h3 class="font-serif text-sm text-champagne font-semibold">You. ❤️</h3>
+                        <p class="text-xs text-roseGold/90 mt-1 font-medium">“And then there's simply… you.”</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 4: THINGS I ADORE ABOUT YOU ==================== -->
+        <div class="slide" id="slide-4">
+            <div class="glass-card p-6 rounded-3xl w-full space-y-4 border border-roseGold/30">
+                <div class="text-center">
+                    <span class="text-[10px] uppercase tracking-widest text-roseGold/60">A Million Reasons</span>
+                    <h2 class="text-xl font-serif text-champagne font-bold mt-1">Things I Adore About You 🌹</h2>
+                </div>
+
+                <ul class="space-y-3 text-xs text-roseGold/90">
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-heart text-rose-400 text-xs mt-0.5"></i>
+                        <span><strong>Your kindness:</strong> The quiet way you care for people.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-sparkles text-rose-400 text-xs mt-0.5"></i>
+                        <span><strong>Your little things:</strong> The way you laugh and react.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-moon text-rose-400 text-xs mt-0.5"></i>
+                        <span><strong>Your way of making me smile:</strong> Without even trying.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-hands-holding text-rose-400 text-xs mt-0.5"></i>
+                        <span><strong>Ordinary moments:</strong> Made special just because of you.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-star text-rose-400 text-xs mt-0.5"></i>
+                        <span>Everything that makes you… <strong>Pratibhaa</strong>.</span>
+                    </li>
+                </ul>
+
+                <p class="text-xs italic text-center text-champagne/80 font-serif pt-2 border-t border-roseGold/10">
+                    “I could keep writing… but I don't think this page would ever be long enough.”
+                </p>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 5: THE ONE PHOTO ==================== -->
+        <div class="slide" id="slide-5">
+            <div class="glass-card p-4 rounded-3xl w-full text-center space-y-3 border border-roseGold/30">
+                <h2 class="text-base font-serif text-champagne font-medium">
+                    “There is one picture I keep coming back to…”
+                </h2>
+
+                <!-- Frame with fit containment -->
+                <div class="photo-frame bg-black/40 rounded-xl p-1.5">
+                    <img src="Snapchat9.jpg" alt="Pratibhaa's Hand" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop';">
+                </div>
+
+                <p class="text-xs text-roseGold/90 font-serif italic">
+                    “Maybe it's just a picture of your hand…<br>
+                    but to me, it's a little piece of you.” 🥹❤️
+                </p>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 6: IF I COULD TELL YOU ONE THING ==================== -->
+        <div class="slide" id="slide-6">
+            <div class="glass-card p-6 rounded-3xl w-full text-center space-y-5 border border-roseGold/30">
+                <i class="fas fa-quote-left text-roseGold/50 text-xl"></i>
+
+                <h3 class="text-lg font-serif text-champagne font-semibold">
+                    If I Could Tell You One Thing…
+                </h3>
+
+                <p class="text-xs text-roseGold/90 leading-relaxed font-light">
+                    I don't want to promise you some perfect fairytale.<br><br>
+                    I just want to be someone who makes you feel loved, respected and appreciated. Someone who notices the little things. Someone who chooses you, again and again.
+                </p>
+
+                <p class="text-xs font-serif text-champagne italic pt-2">
+                    “And there's something I've been wanting to ask you…”
+                </p>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 7: THE LOVE LETTER ==================== -->
+        <div class="slide" id="slide-7">
+            <div class="glass-card p-6 rounded-3xl w-full text-center space-y-4 border border-roseGold/30">
+                <span class="text-[10px] uppercase tracking-widest text-roseGold/60">From My Heart</span>
+                <h2 class="text-xl font-serif text-champagne font-bold">A Letter For You 💌</h2>
+
+                <div id="envelope-btn" onclick="revealLetter()" class="p-6 rounded-2xl bg-wine/30 border border-roseGold/30 cursor-pointer hover:border-roseGold transition-all">
+                    <i class="fas fa-heart text-rose-400 text-3xl mb-2"></i>
+                    <p class="font-serif text-sm text-champagne">Open this, Pratibhaa…</p>
+                    <p class="text-[10px] text-roseGold/60 mt-1">Tap to unfold my heart</p>
+                </div>
+
+                <div id="letter-content-box" class="letter-box text-left space-y-2.5">
+                    <p class="text-[11px] text-roseGold/90 leading-relaxed">
+                        Ever since you entered my life, ordinary moments started feeling quite special. Every time I see your smile, everything else just fades away.
+                    </p>
+                    <p class="text-[11px] text-roseGold/90 leading-relaxed">
+                        You bring a kind of calm into my world that I never knew I was missing. Loving you is the most natural thing my heart has ever done.
+                    </p>
+                    <p class="text-[11px] text-champagne font-serif italic">
+                        Thank you for simply being you. ❤️
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 8: THE BUILD-UP ==================== -->
+        <div class="slide" id="slide-8">
+            <div class="glass-card p-8 rounded-3xl w-full text-center space-y-6 border border-roseGold/30">
+                <p class="text-sm font-serif text-roseGold/80 tracking-widest">Pratibhaa…</p>
+                <p class="text-lg font-serif text-champagne">Can I ask you something?</p>
+                <p class="text-xs text-roseGold/70 italic">
+                    Something my heart has been wanting to ask for a while…
+                </p>
+
+                <div class="pt-4">
+                    <h2 class="text-3xl font-serif font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-300 to-rose-500 tracking-wider animate-pulse">
+                        I LOVE YOU. ❤️
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 9: THE PROPOSAL ==================== -->
+        <div class="slide" id="slide-9">
+            <div class="glass-card p-6 rounded-3xl w-full text-center space-y-4 border-2 border-roseGold/50">
+                <div class="w-12 h-12 mx-auto rounded-full bg-rose-500/20 flex items-center justify-center text-rose-300 text-xl">
+                    <i class="fas fa-ring"></i>
+                </div>
+
+                <h2 class="text-2xl font-serif font-bold text-champagne">PRATIBHAA ❤️</h2>
+
+                <p class="text-xs text-roseGold/90 leading-relaxed font-light">
+                    Will you be the person I get to love, annoy, support, laugh with and make memories with?
+                </p>
+
+                <h3 class="text-lg font-serif text-rose-300 font-bold">
+                    Will you be mine? 💍
+                </h3>
+
+                <div class="space-y-2.5 pt-2">
+                    <button onclick="acceptProposal()" class="w-full py-3.5 rounded-full bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-xs tracking-widest uppercase shadow-lg shadow-rose-600/30 active:scale-95 transition-all">
+                        YES, I WILL ❤️
+                    </button>
+                    
+                    <button id="moment-btn" onclick="needMoment()" class="w-full py-3.5 rounded-full glass-card border border-roseGold/30 text-roseGold/80 font-semibold text-[10px] tracking-widest uppercase active:scale-95 transition-all">
+                        I NEED A MOMENT 🥺
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 10: CELEBRATION ==================== -->
+        <div class="slide" id="slide-10">
+            <div class="glass-card p-6 rounded-3xl w-full text-center space-y-5 border border-roseGold/40">
+                <div class="text-3xl">🎉✨💖</div>
+                
+                <h2 class="text-lg font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-rose-300 to-amber-200">
+                    YOU JUST MADE MY HEART THE HAPPIEST IT HAS EVER BEEN!
+                </h2>
+
+                <p class="text-xs font-serif text-champagne italic">“And this is only the beginning…”</p>
+                
+                <div class="space-y-1 text-[11px] text-roseGold/80 font-light">
+                    <p>One photo.</p>
+                    <p>One question.</p>
+                    <p>One heart.</p>
+                    <p class="text-xs text-rose-300 font-medium">One girl I adore.</p>
+                </div>
+
+                <p class="text-xl font-serif font-bold text-champagne">You. ❤️</p>
+
+                <p class="text-[9px] tracking-widest text-roseGold/50 uppercase pt-2 border-t border-roseGold/10">
+                    Made with all my heart, for Pratibhaa.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation Buttons (Fixed at Bottom) -->
+    <footer id="bottom-nav" class="absolute bottom-0 left-0 right-0 z-50 p-5 flex justify-between items-center max-w-md mx-auto transition-opacity duration-500 opacity-0 pointer-events-none">
+        <button id="prev-btn" onclick="prevSlide()" class="glass-card px-5 py-2.5 rounded-full text-xs font-medium text-roseGold/80 hover:text-white border border-roseGold/30 flex items-center gap-2">
+            <i class="fas fa-chevron-left text-xs"></i> Back
+        </button>
+
+        <button id="next-btn" onclick="nextSlide()" class="glass-card px-6 py-2.5 rounded-full text-xs font-semibold text-champagne bg-wine/50 border border-roseGold/50 flex items-center gap-2 hover:scale-105 transition-all">
+            Next <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        const totalSlides = 10;
+        let currentSlide = 1;
+        let isAudioPlaying = false;
+        const audio = document.getElementById('bg-audio');
+
+        // Build top progress indicators dynamically
+        const progressContainer = document.getElementById('progress-container');
+        for (let i = 1; i <= totalSlides; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'progress-bar-segment';
+            bar.innerHTML = `<div class="progress-bar-fill" id="pfill-${i}"></div>`;
+            progressContainer.appendChild(bar);
+        }
+
+        // On Load animation sequence for Slide 1
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => { document.getElementById('s1-text').classList.remove('opacity-0'); }, 400);
+            setTimeout(() => { document.getElementById('s1-title').classList.remove('opacity-0'); }, 1400);
+            setTimeout(() => { document.getElementById('s1-btn').classList.remove('opacity-0'); }, 2400);
+            initParticles();
+        });
+
+        // Start button on Slide 1
+        function startApp() {
+            // Play audio from 1:10 (70 sec)
+            audio.currentTime = 70;
+            audio.play().then(() => {
+                isAudioPlaying = true;
+                updateAudioUI();
+            }).catch(e => {
+                console.log("Audio autoplay prevented by browser");
+            });
+
+            // Show Navigation elements
+            document.getElementById('top-nav').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('bottom-nav').classList.remove('opacity-0', 'pointer-events-none');
+
+            nextSlide();
+        }
+
+        // Navigation Engine
+        function updateSlide() {
+            // Update active slide class
+            for (let i = 1; i <= totalSlides; i++) {
+                const s = document.getElementById(`slide-${i}`);
+                const fill = document.getElementById(`pfill-${i}`);
+                if (i === currentSlide) {
+                    s.classList.add('active');
+                    fill.style.width = '100%';
+                } else {
+                    s.classList.remove('active');
+                    fill.style.width = i < currentSlide ? '100%' : '0%';
+                }
+            }
+
+            // Counter text
+            document.getElementById('slide-step-counter').innerText = `Step ${currentSlide} of ${totalSlides}`;
+
+            // Back button visibility
+            const prevBtn = document.getElementById('prev-btn');
+            if (currentSlide <= 2) {
+                prevBtn.style.opacity = '0.5';
+                prevBtn.style.pointerEvents = 'none';
+            } else {
+                prevBtn.style.opacity = '1';
+                prevBtn.style.pointerEvents = 'auto';
+            }
+
+            // Next button logic (hide on final slide or slide 9 until accepted)
+            const nextBtn = document.getElementById('next-btn');
+            if (currentSlide === 1) {
+                document.getElementById('top-nav').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('bottom-nav').classList.add('opacity-0', 'pointer-events-none');
+            } else if (currentSlide === 9 || currentSlide === 10) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 2) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Letter Reveal
+        function revealLetter() {
+            document.getElementById('envelope-btn').classList.add('hidden');
+            document.getElementById('letter-content-box').classList.add('open');
+        }
+
+        // Proposal YES
+        function acceptProposal() {
+            confetti({
+                particleCount: 120,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            setTimeout(() => {
+                currentSlide = 10;
+                updateSlide();
+            }, 500);
+        }
+
+        function needMoment() {
+            const btn = document.getElementById('moment-btn');
+            btn.innerText = "TAKE ALL YOUR TIME 🥺❤️";
+            btn.classList.add('border-rose-400', 'text-rose-300');
+        }
+
+        // Audio Toggle
+        function toggleAudio() {
+            if (isAudioPlaying) {
+                audio.pause();
+                isAudioPlaying = false;
+            } else {
+                if (audio.currentTime < 70) audio.currentTime = 70;
+                audio.play();
+                isAudioPlaying = true;
+            }
+            updateAudioUI();
+        }
+
+        function updateAudioUI() {
+            const icon = document.getElementById('audio-icon');
+            const status = document.getElementById('audio-status');
+            if (isAudioPlaying) {
+                icon.className = "fas fa-music text-rose-400 animate-pulse";
+                status.innerText = "Playing O Sanam";
+            } else {
+                icon.className = "fas fa-play text-roseGold";
+                status.innerText = "Play Music";
+            }
+        }
+
+        // Floating particles canvas
+        function initParticles() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const particles = [];
+            for (let i = 0; i < 45; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    color: Math.random() > 0.4 ? 'rgba(232, 180, 184, ' : 'rgba(247, 231, 206, ',
+                    alpha: Math.random() * 0.6 + 0.2,
+                    speedY: - (Math.random() * 0.3 + 0.1)
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    if (p.y < 0) p.y = canvas.height;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color + p.alpha + ')';
+                    ctx.fill();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
+
+```
